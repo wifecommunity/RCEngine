@@ -1,0 +1,31 @@
+{
+  "rules": {
+    "priceHistory": {
+      ".read": true,
+      ".write": true,
+      "$symbol": {
+        ".validate": "newData.hasChildren() || newData.val() == null"
+      }
+    },
+    "activeSetups": {
+      ".read": true,
+      ".write": true
+    },
+    "candleCache": {
+      ".read": true,
+      ".write": true
+    },
+    "priceCache": {
+      ".read": true,
+      ".write": true
+    },
+    "crypto": {
+      ".read": true,
+      ".write": true
+    },
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}
