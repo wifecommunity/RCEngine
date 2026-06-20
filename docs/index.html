@@ -1746,5 +1746,62 @@ async function init(){
 
 window.addEventListener('DOMContentLoaded',init);
 </script>
+<script>
+/* ════════════════════════════════════════════════════════════
+   AUTO-UPDATE CHECKER (hybrid mode)
+   App ini berjalan dari file LOKAL (dibundle di dalam APK), jadi
+   bisa dibuka offline. Tapi kalau HP online, script ini diam-diam
+   cek apakah ada versi lebih baru di GitHub Pages. Kalau ada,
+   muncul banner kecil di bawah layar untuk reload ke versi terbaru.
+
+   CARA KERJA:
+   - APP_VERSION di bawah = versi yang dibundle di APK ini.
+   - Setiap kali kamu build APK baru, naikkan APP_VERSION.
+   - REMOTE_VERSION_URL menunjuk ke file version.json di GitHub
+     Pages kamu, yang berisi versi terbaru yang sudah online.
+   - Kalau REMOTE > LOCAL, tampilkan banner "Update tersedia".
+════════════════════════════════════════════════════════════ */
+const APP_VERSION = "1.0.0"; // naikkan ini setiap build APK baru
+const REMOTE_VERSION_URL = "https://USERNAME.github.io/NAMA-REPO/version.json";
+const REMOTE_PAGE_URL = "https://USERNAME.github.io/NAMA-REPO/index.html";
+
+async function checkForUpdate() {
+  try {
+    const r = await fetch(REMOTE_VERSION_URL + "?t=" + Date.now(), { cache: "no-cache" });
+    if (!r.ok) return;
+    const data = await r.json();
+    if (data.version && data.version !== APP_VERSION) {
+      showUpdateBanner(data.version);
+    }
+  } catch (e) {
+    // offline atau gagal fetch -> diam saja, app tetap pakai versi lokal
+  }
+}
+
+function showUpdateBanner(newVersion) {
+  if (document.getElementById('rcUpdateBanner')) return;
+  const bar = document.createElement('div');
+  bar.id = 'rcUpdateBanner';
+  bar.style.cssText = 'position:fixed;left:0;right:0;bottom:0;z-index:99999;background:#0a1228;border-top:1px solid #00BFFF;color:#fff;font-family:Inter,sans-serif;font-size:13px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 -4px 20px rgba(0,191,255,0.25)';
+  bar.innerHTML = `<span>Versi baru (${newVersion}) tersedia</span>
+    <span style="display:flex;gap:8px">
+      <button id="rcUpdateNow" style="background:#00BFFF;color:#050816;border:none;border-radius:6px;padding:6px 12px;font-weight:600;font-size:12px">Update</button>
+      <button id="rcUpdateLater" style="background:transparent;color:#888;border:1px solid #333;border-radius:6px;padding:6px 12px;font-size:12px">Nanti</button>
+    </span>`;
+  document.body.appendChild(bar);
+  document.getElementById('rcUpdateNow').onclick = () => {
+    window.location.href = REMOTE_PAGE_URL + "?v=" + Date.now();
+  };
+  document.getElementById('rcUpdateLater').onclick = () => {
+    bar.remove();
+  };
+}
+
+// cek saat app dibuka, dan ulang tiap 5 menit selama app dibuka
+window.addEventListener('load', () => {
+  checkForUpdate();
+  setInterval(checkForUpdate, 5 * 60 * 1000);
+});
+</script>
 </body>
 </html>
